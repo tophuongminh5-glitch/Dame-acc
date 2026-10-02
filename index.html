@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMP^^ - Dịch Vụ Dame Acc</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #fce4ec; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; flex-direction: column; }
+        .container { background: white; width: 100%; max-width: 450px; border-radius: 20px; box-shadow: 0 8px 24px rgba(233, 30, 99, 0.15); overflow: hidden; border: 2px solid #f8bbd0; }
+        
+        .header { background: linear-gradient(135deg, #ff4081, #ec407a); color: white; text-align: center; padding: 25px 15px; }
+        .header h1 { font-size: 24px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        
+        /* KHU VỰC XEM TÌNH TRẠNG ACC XUẤT HIỆN CỐ ĐỊNH */
+        .status-banner { 
+            background-color: #fff0f5; 
+            padding: 15px; 
+            text-align: center; 
+            font-size: 14px; 
+            border-bottom: 1px solid #f8bbd0; 
+            color: #333; 
+        }
+        .status-banner b { color: #c2185b; }
+        .badge-status { padding: 3px 8px; border-radius: 6px; font-weight: bold; margin-left: 5px; }
+        .badge-process { background-color: #fff3e0; color: #ff9800; }
+        .badge-dead { background-color: #ffebee; color: #e53935; }
+        .badge-none { background-color: #f5f5f5; color: #999; }
+
+        .form-body { padding: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #c2185b; margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 12px 15px; border: 1.5px solid #f48fb1; border-radius: 12px; font-size: 15px; background-color: #fff8f9; }
+        .form-group input:focus { outline: none; border-color: #ff4081; background-color: #fff; }
+        
+        .btn-submit { width: 100%; background: linear-gradient(135deg, #ec407a, #d81b60); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(236, 64, 122, 0.4); margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>TMP^^</h1>
+    </div>
+
+    <!-- KHU VỰC XEM TÌNH TRẠNG ACC -->
+    <div class="status-banner" id="userStatusBanner">
+        Tài khoản: <b id="clientTiktokId">Chưa có</b> ➔ Tình trạng: <span id="clientBadge" class="badge-status badge-none">Trống</span>
+    </div>
+
+    <div class="form-body">
+        <form id="dameForm">
+            <div class="form-group">
+                <label>ID TikTok</label>
+                <input type="text" id="tiktokId" placeholder="@phuongdepchai" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Gửi Báo Cay Ngay ➔</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Hàm đọc và hiển thị tình trạng từ bộ nhớ máy khách
+    function checkLocalData() {
+        const savedOrder = localStorage.getItem('tmp_order');
+        const badge = document.getElementById('clientBadge');
+        const clientTiktokId = document.getElementById('clientTiktokId');
+        
+        if (savedOrder) {
+            const order = JSON.parse(savedOrder);
+            clientTiktokId.innerText = order.id;
+            
+            if (order.status === 'dead') {
+                badge.className = 'badge-status badge-dead';
+                badge.innerText = '🔴:dead';
+            } else {
+                badge.className = 'badge-status badge-process';
+                badge.innerText = '🟡:Đang xử lý (Chờ 10s...)';
+            }
+        } else {
+            clientTiktokId.innerText = "Chưa có";
+            badge.className = 'badge-status badge-none';
+            badge.innerText = "Trống";
+        }
+    }
+
+    // Sự kiện nhấn nút gửi đơn
+    document.getElementById('dameForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('tiktokId').value;
+        const formattedId = id.startsWith('@') ? id : '@' + id;
+
+        const newOrder = {
+            id: formattedId,
+            status: 'pending'
+        };
+
+        localStorage.setItem('tmp_order', JSON.stringify(newOrder));
+        checkLocalData();
+        document.getElementById('dameForm').reset();
+
+        // TỰ ĐỘNG CHUYỂN TRẠNG THÁI THÀNH 🔴:DEAD SAU 10 GIÂY
+        setTimeout(() => {
+            const savedOrder = localStorage.getItem('tmp_order');
+            if (savedOrder) {
+                const order = JSON.parse(savedOrder);
+                if (order.status === 'pending') {
+                    order.status = 'dead';
+                    localStorage.setItem('tmp_order', JSON.stringify(order));
+                    checkLocalData();
+                }
+            }
+        }, 10000); // 10000 mili-giây = 10 giây
+    });
+
+    // Chạy kiểm tra dữ liệu cũ ngay khi vừa load web
+    checkLocalData();
+</script>
+
+</body>
+</html>
